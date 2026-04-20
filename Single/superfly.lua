@@ -480,6 +480,7 @@ local function onGlobalInput(input, gameProcessed)
 				end
 				flightConns = {}
 				moveState = {forward = 0, backward = 0, left = 0, right = 0}
+				humanoid2:ChangeState(Enum.HumanoidStateType.Jumping)
 			end
 		end
 	end
