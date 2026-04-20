@@ -316,6 +316,11 @@ local function onGlobalInput(input, gameProcessed)
 			toggleKey = input.KeyCode
 			keybindButton.Text = "KEYBIND: " .. toggleKey.Name
 			keybindButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		elseif input.KeyCode == Enum.KeyCode.Space then
+			if isFlying then
+				humanoid2:ChangeState(Enum.HumanoidStateType.Landed)
+				-- humanoid2:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
 		elseif input.KeyCode == toggleKey then
 			-- Umschalten des Flugmodus
 			if not isFlying then
