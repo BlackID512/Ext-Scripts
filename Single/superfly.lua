@@ -13,12 +13,13 @@ local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+local humanoid2 = character:FindFirstChildWhichIsA("Humanoid")
 local hrp = character:WaitForChild("HumanoidRootPart")
 local originalGravity = Workspace.Gravity
 
 local isFlying = false
-local flightSpeed = 50           -- Standardfluggeschwindigkeit
-local toggleKey = Enum.KeyCode.X   -- Standard Umschalttaste
+local flightSpeed = 100           -- Standardfluggeschwindigkeit
+local toggleKey = Enum.KeyCode.LeftAlt   -- Standard Umschalttaste
 local waitingForKeybind = false
 
 -- Steuerungstabelle für Flugbewegung (W, A, S, D)
@@ -133,7 +134,7 @@ local titleLabel = createElement("TextLabel", {
 	Size = UDim2.new(1, 0, 0, 40),
 	Position = UDim2.new(0, 0, 0, 0),
 	BackgroundTransparency = 1,
-	Text = "Superman Fly",
+	Text = "SuperFly",
 	Font = Enum.Font.GothamBold,
 	TextSize = 24,
 	TextColor3 = Color3.new(1, 1, 1)
@@ -318,6 +319,12 @@ local function onGlobalInput(input, gameProcessed)
 		elseif input.KeyCode == toggleKey then
 			-- Umschalten des Flugmodus
 			if not isFlying then
+				-- Make player Lay First (Applied for West Corner Games)
+				humanoid2.Sit = true
+				humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
+				for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do
+					v:Stop()
+				end
 				-- Flugmodus starten
 				isFlying = true
 				toggleButton.Text = "FLY: ON"
