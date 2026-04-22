@@ -482,12 +482,17 @@ local function onGlobalInput(input, gameProcessed)
 						elseif key == Enum.KeyCode.A then
 							moveState.left = 1
 							if moveState.forward > 0 then
-								playAnimation(10714177846, 4.65, 0)
+								-- playAnimation(10714177846, 4.65, 0)
+								-- https://www.roblox.com/catalog/123671647250039/Wall-Peek-L
+								playAnimation(123671647250039, 4.65, 0)
 							end
 						elseif key == Enum.KeyCode.D then
 							moveState.right = 1
 							if moveState.forward > 0 then
-								playAnimation(10714177846, 4.65, 0)
+								-- playAnimation(10714177846, 4.65, 0)
+								-- playAnimation(111743497143417, 4.65, 0)
+								-- https://www.roblox.com/catalog/121811796008419/Wall-Peek-R
+								playAnimation(121811796008419, 4.65, 0)
 							end
 						end
 					end
