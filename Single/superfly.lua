@@ -318,8 +318,62 @@ local function onGlobalInput(input, gameProcessed)
 			keybindButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 		elseif input.KeyCode == Enum.KeyCode.Space then
 			if isFlying then
-				humanoid2:ChangeState(Enum.HumanoidStateType.Landed)
 				-- humanoid2:ChangeState(Enum.HumanoidStateType.Jumping)
+				humanoid2:ChangeState(Enum.HumanoidStateType.Landed)
+				humanoid2.Sit = true
+				humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
+				for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do
+					v:Stop()
+				end
+				playAnimation(10714347256, 4, 0)
+				--[[
+				local flightUpdate = RunService.RenderStepped:Connect(function(deltaTime)
+					local cam = Workspace.CurrentCamera
+					
+					-- Berechne Input: Vorwärts (W) minus Rückwärts (S) und seitlich (A/D)
+					local fwd = moveState.forward - moveState.backward
+					local side = moveState.right - moveState.left
+					
+					-- Input-Vektor basierend auf der Kameraausrichtung
+					local inputVec = (cam.CFrame.LookVector * fwd) + (cam.CFrame.RightVector * side)
+					
+					-- Falls Vorwärts gedrückt: füge einen leichten Höhenoffset hinzu
+					if fwd ~= 0 then
+						inputVec = inputVec + Vector3.new(0, 0.2 * fwd, 0)
+					end
+					
+					-- Bobbing-Effekt: Wenn keinerlei Input vorhanden ist (Schwebezustand)
+					local bobbing = math.sin(tick() * bobbingFrequency) * bobbingAmplitude
+					local desiredVelocity = Vector3.new(0, 0, 0)
+					if inputVec.Magnitude > 0 then
+						desiredVelocity = inputVec.Unit * flightSpeed
+					else
+						-- Beim Schweben: sanftes Auf und Ab
+						desiredVelocity = Vector3.new(0, bobbing, 0)
+					end
+					
+					-- Sanfte Interpolation (Sliding/Inertia)
+					currentVelocity = currentVelocity:Lerp(desiredVelocity, 0.1)
+					bv.Velocity = currentVelocity
+					
+					-- Berechne gewünschte Rotation:
+					-- Bei Vorwärtsflug neigen wir den Pitch auf -90° plus Roll,
+					-- ansonsten erfolgt eine leichtere Pitch-Anpassung, wobei auch rückwärts
+					-- (fwd < 0) geneigt wird.
+					local desiredCF
+					if fwd > 0 then
+						desiredCF = cam.CFrame * CFrame.Angles(math.rad(-90), 0, math.rad(currentRoll))
+					else
+						desiredCF = cam.CFrame * CFrame.Angles(math.rad(-45 * fwd), 0, math.rad(currentRoll))
+					end
+					if currentCF then
+						currentCF = currentCF:Lerp(desiredCF, lerpCoef)
+					else
+						currentCF = desiredCF
+					end
+					gyro.CFrame = currentCF
+				end)
+				]]
 			end
 		elseif input.KeyCode == toggleKey then
 			-- Umschalten des Flugmodus
@@ -485,7 +539,9 @@ local function onGlobalInput(input, gameProcessed)
 				end
 				flightConns = {}
 				moveState = {forward = 0, backward = 0, left = 0, right = 0}
-				humanoid2:ChangeState(Enum.HumanoidStateType.Jumping)
+				humanoid2.Sit = false
+				-- humanoid2:ChangeState(Enum.HumanoidStateType.Jumping)
+				humanoid2:ChangeState(Enum.HumanoidStateType.Landed)
 			end
 		end
 	end
