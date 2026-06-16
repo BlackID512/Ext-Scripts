@@ -49,7 +49,7 @@ local settings = {
 }
 
 --// State
-local startClock   = os.clock()
+local startTime   = os.clock()
 local lastAfkTick  = 0
 local fps          = 60
 local glitchCount  = 0
@@ -58,9 +58,11 @@ local reconnectConn
 
 --// Helpers (time / http / server hop)
 local function nowUTC() return os.time(os.date("!*t")) end
--- local function localTimeStr()   return os.date("%Y-%m-%d %H:%M:%S") end
--- local function utcTimeStr()     return os.date("!%Y-%m-%d %H:%M:%S") end
--- local function bangkokTimeStr() return os.date("!%Y-%m-%d %H:%M:%S", nowUTC()+7*3600) end
+--[[
+local function localTimeStr()   return os.date("%Y-%m-%d %H:%M:%S") end
+local function utcTimeStr()     return os.date("!%Y-%m-%d %H:%M:%S") end
+local function bangkokTimeStr() return os.date("!%Y-%m-%d %H:%M:%S", nowUTC()+7*3600) end
+]]--
 local function localTimeStr()   return os.date("%d/%m/%Y %H:%M:%S") end
 local function utcTimeStr()     return os.date("!%d/%m/%Y %H:%M:%S") end
 local function bangkokTimeStr() return os.date("!%d/%m/%Y %H:%M:%S", nowUTC()+7*3600) end
@@ -170,15 +172,17 @@ authorLbl.Text = "Made By FathurBlackID"
 authorLbl.Parent = titleBar
 
 -- RGB animate credits
--- task.spawn(function()
-  -- local h = 0
-  -- while devLbl.Parent and authorLbl.Parent do
-    -- devLbl.TextColor3    = Color3.fromHSV(h, 1, 1)
-    -- authorLbl.TextColor3 = Color3.fromHSV((h+0.5)%1, 1, 1)
-    -- h = (h + 0.008) % 1
-    -- task.wait(0.03)
-  -- end
--- end)
+--[[
+task.spawn(function()
+  local h = 0
+  while devLbl.Parent and authorLbl.Parent do
+    devLbl.TextColor3    = Color3.fromHSV(h, 1, 1)
+    authorLbl.TextColor3 = Color3.fromHSV((h+0.5)%1, 1, 1)
+    h = (h + 0.008) % 1
+    task.wait(0.03)
+  end
+end)
+]]--
 
 -- Make draggable by title bar
 do
@@ -244,8 +248,8 @@ local actionBtn  = makeBtn("Action: None",           10, 150, 155, 32)
 local reconnBtn  = makeBtn("Auto Rejoin: ON",       175, 150, 145, 32, Color3.fromRGB(55,75,55))
 
 -- local sessionLbl = makeLabel("In server: 0 min", 10, 188, 300, 22)
-local sessionLbl = makeLabel("In server: 00:00:00", 10, 188, 300, 22)
-local threshLbl  = makeLabel("Lag threshold (s): 0.6", 10, 212, 160, 22)
+local sessionLbl = makeLabel("In server: 0d 00:00:00", 10, 188, 300, 22)
+local threshLbl  = makeLabel("Lag threshold (s): 0.5", 10, 212, 160, 22)
 local plusBtn    = makeBtn("+",                   180, 210, 45, 24, Color3.fromRGB(52,52,62))
 local minusBtn   = makeBtn("-",                   230, 210, 45, 24, Color3.fromRGB(52,52,62))
 
@@ -450,25 +454,26 @@ task.spawn(function()
       glitchCount = 0
     end
 
-    local hours = math.floor((os.clock()-startClock)/3600)
-    local minutes = math.floor((os.clock()-startClock)/60)
-    local seconds = math.floor((os.clock()-startClock)/1)
+    local elapsed = os.clock() - startTime
+	local days = math.floor(elapsed / 86400)
+	local remaining = elapsed % 86400
+    local hours = math.floor(remaining / 3600)
+	remaining = remaining % 3600
+    local minutes = math.floor(remaining / 60)
+    local seconds = math.floor(remaining % 60)
     local pingItem = StatsSvc.Network.ServerStatsItem["Data Ping"]
     local ping = pingItem and pingItem:GetValue() or 0
     local ram  = math.floor(StatsSvc:GetTotalMemoryUsageMb())
     local cpu  = math.min(100, math.floor((60/math.max(fps,1))*25)) -- approx
-	local strHours = tostring(hours)
-	local strMinutes = tostring(minutes)
-	local strSeconds = tostring(seconds)
-	if hours < 10 then strHours = '0' .. tostring(hours) end
-	if minutes < 10 then strMinutes = '0' .. tostring(minutes) end
-	if seconds < 10 then strSeconds = '0' .. tostring(seconds) end
+    local strHours = string.format("%02d", hours)
+    local strMinutes = string.format("%02d", minutes)
+    local strSeconds = string.format("%02d", seconds)
 
     -- statusLbl.Text = ("Status: Running | AFK: %s | FPS: %d | Action: %s | Rejoin: %s")
     statusLbl.Text = ("✅|AFK: %s|FPS: %d|Action: %s|Rejoin: %s")
       :format(tostring(settings.antiAFK), math.floor(fps+0.5), settings.autoAction, settings.autoReconnect and "ON" or "OFF")
     -- sessionLbl.Text = ("In server: %d min"):format(minutes)
-    sessionLbl.Text = ("In server: %s:%s:%s"):format(strHours, strMinutes, strSeconds)
+    sessionLbl.Text = ("In server: %dd %s:%s:%s"):format(days, strHours, strMinutes, strSeconds)
     sysLbl.Text = ("CPU: %d%% | RAM: %dMB | Ping: %dms"):format(cpu, ram, ping)
   end
 end)
