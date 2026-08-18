@@ -21,6 +21,7 @@ local flightSpeed = 100           -- Standardfluggeschwindigkeit
 local toggleKey = Enum.KeyCode.LeftAlt   -- Standard Umschalttaste
 local waitingForKeybind = false
 
+local touchGui = nil
 -- Steuerungstabelle für Flugbewegung (wird von Tastatur UND Touch gesteuert)
 local moveState = {
 	forward = 0,    -- W / Touch Up
@@ -153,7 +154,7 @@ local isMobile = UserInputService.TouchEnabled
 
 if isMobile then
 	-- Erstelle ein eigenes GUI für Touch-Buttons
-	local touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
+	touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 	
 	-- Funktion zum Erstellen eines Touch-Buttons
 	local function createTouchButton(text, position, size, stateKey)
@@ -344,29 +345,34 @@ createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 -- GUI: Drag & Drop (Hauptframe verschiebbar)
 --------------------------------------------------
 
+-- Drag & Drop (supports mouse and touch)
 local dragging = false
 local dragStartPos, dragStartMousePos
 
-mainFrame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+local function startDrag(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStartPos = mainFrame.Position
 		dragStartMousePos = input.Position
 	end
-end)
+end
 
-mainFrame.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+local function updateDrag(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - dragStartMousePos
 		mainFrame.Position = UDim2.new(dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X, dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y)
 	end
-end)
+end
 
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+local function endDrag(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = false
 	end
-end)
+end
+
+mainFrame.InputBegan:Connect(startDrag)
+mainFrame.InputChanged:Connect(updateDrag)
+UserInputService.InputEnded:Connect(endDrag)
 
 --------------------------------------------------
 -- Fluggeschwindigkeit anpassen
