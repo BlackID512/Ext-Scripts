@@ -153,8 +153,7 @@ local isMobile = UserInputService.TouchEnabled
 
 if isMobile then
 	-- Erstelle ein eigenes GUI für Touch-Buttons
-	-- local touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
-	local touchGui = flyGui  -- Use the same GUI as the main UI
+	local touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 	
 	-- Funktion zum Erstellen eines Touch-Buttons
 	local function createTouchButton(text, position, size, stateKey)
