@@ -197,8 +197,8 @@ if isMobile then
 	
 	-- Layout für Touch-Buttons (D-Pad ähnlich)
 	local buttonSize = 70
-	local spacing = 10
-	local centerX = 0.15  -- Linke Seite des Bildschirms
+	local spacing = 25
+	local centerX = 0.20  -- Linke Seite des Bildschirms
 	
 	-- Forward (oben)
 	createTouchButton("▲", 
