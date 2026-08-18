@@ -621,7 +621,7 @@ end)
 --------------------------------------------------
 -- CHARACTER-RELOAD: Aktualisiere Referenzen und beende Flugmodus (zur Sicherheit)
 --------------------------------------------------
-
+--[[
 player.CharacterAdded:Connect(function(newChar)
 	character = newChar
 	humanoid = character:WaitForChild("Humanoid")
@@ -641,11 +641,33 @@ player.CharacterAdded:Connect(function(newChar)
 		moveState = {forward = 0, backward = 0, left = 0, right = 0}
 	end
 end)
+]]--
+player.CharacterAdded:Connect(function(newChar)
+	character = newChar
+	humanoid = character:WaitForChild("Humanoid")
+	hrp = character:WaitForChild("HumanoidRootPart")
+	if isFlying then
+		isFlying = false
+		toggleButton.Text = "FLY: OFF"
+		Workspace.Gravity = originalGravity
+		humanoid.PlatformStand = false
+		stopAnimation()
+		if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+		if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+		for _, conn in ipairs(flightConns) do
+			if conn.Connected then conn:Disconnect() end
+		end
+		flightConns = {}
+		moveState = {forward = 0, backward = 0, left = 0, right = 0}
+		-- Destroy touch GUI on respawn too
+		if touchGui then touchGui:Destroy() end
+	end
+end)
 
 --------------------------------------------------
 -- CLOSE-BUTTON: Aufräumen und Skript beenden
 --------------------------------------------------
-
+--[[
 closeButton.MouseButton1Click:Connect(function()
 	if isFlying then
 		isFlying = false
@@ -663,5 +685,27 @@ closeButton.MouseButton1Click:Connect(function()
 		if conn.Connected then conn:Disconnect() end
 	end
 	flyGui:Destroy()
+	script:Destroy()
+end)
+]]--
+closeButton.MouseButton1Click:Connect(function()
+	if isFlying then
+		isFlying = false
+		Workspace.Gravity = originalGravity
+		humanoid.PlatformStand = false
+		stopAnimation()
+		if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+		if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+		for _, conn in ipairs(flightConns) do
+			if conn.Connected then conn:Disconnect() end
+		end
+		flightConns = {}
+	end
+	for _, conn in ipairs(globalConns) do
+		if conn.Connected then conn:Disconnect() end
+	end
+	flyGui:Destroy()
+	-- Destroy touch GUI too
+	if touchGui then touchGui:Destroy() end
 	script:Destroy()
 end)
