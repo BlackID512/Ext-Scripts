@@ -1,4 +1,4 @@
--- SUPERFLY V2 – COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
+-- COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
 -- MIT TOUCH-UNTERSTÜTZUNG FÜR ANDROID
 
 -- Dienste laden
@@ -21,6 +21,7 @@ local flightSpeed = 100           -- Standardfluggeschwindigkeit
 local toggleKey = Enum.KeyCode.LeftAlt   -- Standard Umschalttaste
 local waitingForKeybind = false
 
+local touchGui = nil
 -- Steuerungstabelle für Flugbewegung (wird von Tastatur UND Touch gesteuert)
 local moveState = {
 	forward = 0,    -- W / Touch Up
@@ -57,9 +58,6 @@ local globalConns = {}
 
 -- Variable für aktuell laufende Animation
 local currentAnimTrack = nil
-
--- Touch-GUI (wird später initialisiert)
-local touchGui = nil
 
 --------------------------------------------------
 -- ANIMATIONEN (Starten/Stoppen)
@@ -246,7 +244,7 @@ local titleLabel = createElement("TextLabel", {
 	Size = UDim2.new(1, 0, 0, 40),
 	Position = UDim2.new(0, 0, 0, 0),
 	BackgroundTransparency = 1,
-	Text = "SuperFly V2",
+	Text = "SuperFly",
 	Font = Enum.Font.GothamBold,
 	TextSize = 24,
 	TextColor3 = Color3.new(1, 1, 1)
@@ -317,15 +315,15 @@ createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, plusButton)
 
 -- Keybind Button
 local keybindButton = createElement("TextButton", {
-	Name = "KeybindButton",
-	Size = UDim2.new(0.9, 0, 0, 30),
-	Position = UDim2.new(0.05, 0, 0, 120),
-	BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-	Text = "KEYBIND: " .. toggleKey.Name,
-	Font = Enum.Font.GothamBold,
-	TextSize = 20,
-	TextColor3 = Color3.new(1, 1, 1),
-	BorderSizePixel = 0
+    Name = "KeybindButton",
+    Size = UDim2.new(0.9, 0, 0, 30),
+    Position = UDim2.new(0.05, 0, 0, 120),
+    BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+    Text = "KEYBIND: " .. toggleKey.Name,
+    Font = Enum.Font.GothamBold,
+    TextSize = 20,
+    TextColor3 = Color3.new(1, 1, 1),
+    BorderSizePixel = 0
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, keybindButton)
 
@@ -344,9 +342,10 @@ local closeButton = createElement("TextButton", {
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- GUI: Drag & Drop (unterstützt Maus UND Touch)
+-- GUI: Drag & Drop (Hauptframe verschiebbar)
 --------------------------------------------------
 
+-- Drag & Drop (supports mouse and touch)
 local dragging = false
 local dragStartPos, dragStartMousePos
 
@@ -404,12 +403,23 @@ end)
 --------------------------------------------------
 -- Umschalten des Keybinds
 --------------------------------------------------
-
+--[[
 keybindButton.MouseButton1Click:Connect(function()
 	waitingForKeybind = true
 	keybindButton.Text = "PRESS ANY KEY..."
 	keybindButton.BackgroundColor3 = Color3.fromRGB(75, 255, 75)
 end)
+]]--
+
+-- Keybind button click handler (ignores touch)
+keybindButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        waitingForKeybind = true
+        keybindButton.Text = "PRESS ANY KEY..."
+        keybindButton.BackgroundColor3 = Color3.fromRGB(75, 255, 75)
+    end
+end)
+
 
 --------------------------------------------------
 -- GLOBALE TASTEN- UND KEYBIND-VERARBEITUNG
@@ -463,8 +473,10 @@ local function onGlobalInput(input, gameProcessed)
 				tween:Play()
 
 				-- FLUGMODUS STARTEN
+
 				Workspace.Gravity = 0
 				humanoid.PlatformStand = true
+				-- Sofort-Animation beim Aktivieren (ID 10714347256, Startzeit 4 s, Speed 0)
 				playAnimation(10714347256, 4, 0)
 
 				-- Erstelle BodyGyro für Drehung
@@ -480,35 +492,46 @@ local function onGlobalInput(input, gameProcessed)
 				bv.Name = "FlyVelocity"
 				bv.Parent = hrp
 				bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+				-- Setze einen minimalen Y-Vektor, damit die Physik aktiv bleibt
 				bv.Velocity = Vector3.new(0, 0.1, 0)
 
 				-- Reset des aktuellen Geschwindigkeitsvektors
 				currentVelocity = Vector3.new(0, 0, 0)
 
-				-- RenderStep-Update
+				-- RenderStep-Update: Berechnet in jedem Frame die neue Position und Rotation
 				local flightUpdate = RunService.RenderStepped:Connect(function(deltaTime)
 					local cam = Workspace.CurrentCamera
 
+					-- Berechne Input: Vorwärts (W) minus Rückwärts (S) und seitlich (A/D)
 					local fwd = moveState.forward - moveState.backward
 					local side = moveState.right - moveState.left
 
+					-- Input-Vektor basierend auf der Kameraausrichtung
 					local inputVec = (cam.CFrame.LookVector * fwd) + (cam.CFrame.RightVector * side)
 
+					-- Falls Vorwärts gedrückt: füge einen leichten Höhenoffset hinzu
 					if fwd ~= 0 then
 						inputVec = inputVec + Vector3.new(0, 0.2 * fwd, 0)
 					end
 
+					-- Bobbing-Effekt: Wenn keinerlei Input vorhanden ist (Schwebezustand)
 					local bobbing = math.sin(tick() * bobbingFrequency) * bobbingAmplitude
 					local desiredVelocity = Vector3.new(0, 0, 0)
 					if inputVec.Magnitude > 0 then
 						desiredVelocity = inputVec.Unit * flightSpeed
 					else
+						-- Beim Schweben: sanftes Auf und Ab
 						desiredVelocity = Vector3.new(0, bobbing, 0)
 					end
 
+					-- Sanfte Interpolation (Sliding/Inertia)
 					currentVelocity = currentVelocity:Lerp(desiredVelocity, 0.1)
 					bv.Velocity = currentVelocity
 
+					-- Berechne gewünschte Rotation:
+					-- Bei Vorwärtsflug neigen wir den Pitch auf -90° plus Roll,
+					-- ansonsten erfolgt eine leichtere Pitch-Anpassung, wobei auch rückwärts
+					-- (fwd < 0) geneigt wird.
 					local desiredCF
 					if fwd > 0 then
 						desiredCF = cam.CFrame * CFrame.Angles(math.rad(-90), 0, math.rad(currentRoll))
@@ -524,7 +547,7 @@ local function onGlobalInput(input, gameProcessed)
 				end)
 				table.insert(flightConns, flightUpdate)
 
-				-- Tasteneingaben für Richtungssteuerung
+				-- Verbinde Tasteneingaben für Richtungssteuerung im Flugmodus
 				local function onFlyInputBegan(input, gameProc)
 					if gameProc then return end
 					if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -589,6 +612,7 @@ local function onGlobalInput(input, gameProcessed)
 				stopAnimation()
 				if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
 				if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+				-- Trenne alle im Flugmodus verbundenen Events
 				for _, conn in ipairs(flightConns) do
 					if conn.Connected then conn:Disconnect() end
 				end
@@ -612,9 +636,9 @@ toggleButton.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- CHARACTER-RELOAD: Aufräumen
+-- CHARACTER-RELOAD: Aktualisiere Referenzen und beende Flugmodus (zur Sicherheit)
 --------------------------------------------------
-
+--[[
 player.CharacterAdded:Connect(function(newChar)
 	character = newChar
 	humanoid = character:WaitForChild("Humanoid")
@@ -632,14 +656,35 @@ player.CharacterAdded:Connect(function(newChar)
 		end
 		flightConns = {}
 		moveState = {forward = 0, backward = 0, left = 0, right = 0}
+	end
+end)
+]]--
+player.CharacterAdded:Connect(function(newChar)
+	character = newChar
+	humanoid = character:WaitForChild("Humanoid")
+	hrp = character:WaitForChild("HumanoidRootPart")
+	if isFlying then
+		isFlying = false
+		toggleButton.Text = "FLY: OFF"
+		Workspace.Gravity = originalGravity
+		humanoid.PlatformStand = false
+		stopAnimation()
+		if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+		if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+		for _, conn in ipairs(flightConns) do
+			if conn.Connected then conn:Disconnect() end
+		end
+		flightConns = {}
+		moveState = {forward = 0, backward = 0, left = 0, right = 0}
+		-- Destroy touch GUI on respawn too
 		if touchGui then touchGui:Destroy() end
 	end
 end)
 
 --------------------------------------------------
--- CLOSE-BUTTON: Vollständiges Aufräumen
+-- CLOSE-BUTTON: Aufräumen und Skript beenden
 --------------------------------------------------
-
+--[[
 closeButton.MouseButton1Click:Connect(function()
 	if isFlying then
 		isFlying = false
@@ -657,6 +702,27 @@ closeButton.MouseButton1Click:Connect(function()
 		if conn.Connected then conn:Disconnect() end
 	end
 	flyGui:Destroy()
+	script:Destroy()
+end)
+]]--
+closeButton.MouseButton1Click:Connect(function()
+	if isFlying then
+		isFlying = false
+		Workspace.Gravity = originalGravity
+		humanoid.PlatformStand = false
+		stopAnimation()
+		if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+		if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+		for _, conn in ipairs(flightConns) do
+			if conn.Connected then conn:Disconnect() end
+		end
+		flightConns = {}
+	end
+	for _, conn in ipairs(globalConns) do
+		if conn.Connected then conn:Disconnect() end
+	end
+	flyGui:Destroy()
+	-- Destroy touch GUI too
 	if touchGui then touchGui:Destroy() end
 	script:Destroy()
 end)
