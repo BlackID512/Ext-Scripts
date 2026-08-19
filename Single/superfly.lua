@@ -1,5 +1,5 @@
 -- SUPERFLY V2 – COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
--- MIT TOUCH-UNTERSTÜTZUNG FÜR ANDROID + DPAD TOGGLE (FIXED)
+-- UNIVERSELLE VIRTUELLE PFEILTASTEN + TOGGLE FÜR ALLE GERÄTE
 
 -- Dienste laden
 local Players = game:GetService("Players")
@@ -21,7 +21,7 @@ local flightSpeed = 100
 local toggleKey = Enum.KeyCode.LeftAlt
 local waitingForKeybind = false
 
--- Touch-GUI (wird später initialisiert)
+-- Touch-GUI (wird immer erstellt)
 local touchGui = nil
 
 -- Steuerungstabelle für Flugbewegung
@@ -29,7 +29,7 @@ local moveState = {
     forward = 0, backward = 0, left = 0, right = 0
 }
 
--- Touch-Status für die Buttons
+-- Touch-Status für die Buttons (auch für Maus)
 local touchState = {
     forward = false, backward = false, left = false, right = false
 }
@@ -105,7 +105,7 @@ local function createElement(className, properties, parent)
 end
 
 --------------------------------------------------
--- TOUCH-STEUERUNG
+-- UNIVERSELLE VIRTUELLE PFEILTASTEN (immer sichtbar)
 --------------------------------------------------
 local function updateMoveStateFromTouch()
     moveState.forward = touchState.forward and 1 or 0
@@ -128,57 +128,56 @@ local function updateMoveStateFromTouch()
     end
 end
 
-local isMobile = UserInputService.TouchEnabled
+-- Erstelle das GUI für die Pfeile (immer vorhanden)
+touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
-if isMobile then
-    touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
+local function createArrowButton(text, position, size, stateKey)
+    local btn = createElement("TextButton", {
+        Name = stateKey .. "Btn",
+        Size = UDim2.new(0, size or 80, 0, size or 80),
+        Position = position,
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        Text = text,
+        Font = Enum.Font.GothamBold,
+        TextSize = 30,
+        TextColor3 = Color3.fromRGB(0, 0, 0),
+        BorderSizePixel = 0,
+        BackgroundTransparency = 0.5,
+        ZIndex = 10
+    }, touchGui)
+    createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
 
-    local function createTouchButton(text, position, size, stateKey)
-        local btn = createElement("TextButton", {
-            Name = stateKey .. "Btn",
-            Size = UDim2.new(0, size or 80, 0, size or 80),
-            Position = position,
-            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-            Text = text,
-            Font = Enum.Font.GothamBold,
-            TextSize = 30,
-            TextColor3 = Color3.fromRGB(0, 0, 0),
-            BorderSizePixel = 0,
-            BackgroundTransparency = 0.5,
-            ZIndex = 10
-        }, touchGui)
-        createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
+    -- Reagiere auf Touch UND Maus
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            touchState[stateKey] = true
+            updateMoveStateFromTouch()
+            btn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+            btn.BackgroundTransparency = 0.3
+        end
+    end)
 
-        btn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                touchState[stateKey] = true
-                updateMoveStateFromTouch()
-                btn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-                btn.BackgroundTransparency = 0.3
-            end
-        end)
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            touchState[stateKey] = false
+            updateMoveStateFromTouch()
+            btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            btn.BackgroundTransparency = 0.5
+        end
+    end)
 
-        btn.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                touchState[stateKey] = false
-                updateMoveStateFromTouch()
-                btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                btn.BackgroundTransparency = 0.5
-            end
-        end)
-
-        return btn
-    end
-
-    local buttonSize = 70
-    local spacing = 50
-    local centerX = 0.20
-
-    createTouchButton("▲", UDim2.new(centerX, -buttonSize/2, 0.6, -buttonSize - spacing/2), buttonSize, "forward")
-    createTouchButton("▼", UDim2.new(centerX, -buttonSize/2, 0.6, spacing/2), buttonSize, "backward")
-    createTouchButton("◄", UDim2.new(centerX, -buttonSize - spacing/2, 0.6, -buttonSize/2), buttonSize, "left")
-    createTouchButton("►", UDim2.new(centerX, spacing/2, 0.6, -buttonSize/2), buttonSize, "right")
+    return btn
 end
+
+-- Layout (D‑Pad)
+local buttonSize = 70
+local spacing = 50
+local centerX = 0.20
+
+createArrowButton("▲", UDim2.new(centerX, -buttonSize/2, 0.6, -buttonSize - spacing/2), buttonSize, "forward")
+createArrowButton("▼", UDim2.new(centerX, -buttonSize/2, 0.6, spacing/2), buttonSize, "backward")
+createArrowButton("◄", UDim2.new(centerX, -buttonSize - spacing/2, 0.6, -buttonSize/2), buttonSize, "left")
+createArrowButton("►", UDim2.new(centerX, spacing/2, 0.6, -buttonSize/2), buttonSize, "right")
 
 --------------------------------------------------
 -- HAUPT-GUI
@@ -203,7 +202,8 @@ local titleLabel = createElement("TextLabel", {
     Text = "SuperFly",
     Font = Enum.Font.GothamBold,
     TextSize = 24,
-    TextColor3 = Color3.new(1, 1, 1)
+    TextColor3 = Color3.new(1, 1, 1),
+    ZIndex = 1
 }, mainFrame)
 
 local toggleButton = createElement("TextButton", {
@@ -280,6 +280,7 @@ local keybindButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, keybindButton)
 
+-- Close Button (top-right)
 local closeButton = createElement("TextButton", {
     Name = "CloseButton",
     Size = UDim2.new(0, 30, 0, 30),
@@ -289,41 +290,37 @@ local closeButton = createElement("TextButton", {
     Font = Enum.Font.GothamBold,
     TextSize = 20,
     TextColor3 = Color3.new(1, 1, 1),
-    BorderSizePixel = 0
+    BorderSizePixel = 0,
+    ZIndex = 2
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- DPAD TOGGLE BUTTON (FIXED)
+-- DPAD TOGGLE BUTTON (immer vorhanden)
 --------------------------------------------------
-if isMobile then
-    local toggleDpadButton = createElement("TextButton", {
-        Name = "ToggleDpad",
-        Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(0, 5, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
-        Text = "D",
-        Font = Enum.Font.GothamBold,
-        TextSize = 18,
-        TextColor3 = Color3.new(1, 1, 1),
-        BorderSizePixel = 0,
-        ZIndex = 11  -- ensure it's above everything
-    }, mainFrame)
-    createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
+local toggleDpadButton = createElement("TextButton", {
+    Name = "ToggleDpad",
+    Size = UDim2.new(0, 30, 0, 30),
+    Position = UDim2.new(1, -70, 0, 5),   -- left of close button
+    BackgroundColor3 = Color3.fromRGB(100, 100, 100),
+    Text = "D",
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+    TextColor3 = Color3.new(1, 1, 1),
+    BorderSizePixel = 0,
+    ZIndex = 2
+}, mainFrame)
+createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
-    local touchVisible = true
-    toggleDpadButton.InputBegan:Connect(function(input)
-        -- react to both mouse and touch
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            touchVisible = not touchVisible
-            if touchGui then
-                touchGui.Visible = touchVisible
-            end
-            toggleDpadButton.Text = touchVisible and "D" or "✕"
-            toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
-        end
-    end)
-end
+local touchVisible = true
+toggleDpadButton.MouseButton1Click:Connect(function()
+    touchVisible = not touchVisible
+    if touchGui then
+        touchGui.Visible = touchVisible
+    end
+    toggleDpadButton.Text = touchVisible and "D" or "✕"
+    toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
+end)
 
 --------------------------------------------------
 -- DRAG & DROP (Maus & Touch)
