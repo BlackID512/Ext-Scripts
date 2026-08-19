@@ -23,7 +23,6 @@ local waitingForKeybind = false
 
 -- Touch-GUI (wird immer erstellt)
 local touchGui = nil
-local touchVisible = true
 
 -- Steuerungstabelle für Flugbewegung
 local moveState = {
@@ -316,24 +315,23 @@ local toggleDpadButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
+local touchVisible = true
+
 -- This toggles the D-pad visibility
-toggleDpadButton.InputBegan:Connect(function(input)
-    -- React to both mouse AND touch
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
-        
-        -- Flip the state
-        touchVisible = not touchVisible
-        
-        -- Hide/show the entire D‑pad GUI
-        if touchGui then
-            touchGui.Visible = touchVisible
-        end
-        
-        -- Update the toggle button
-        toggleDpadButton.Text = touchVisible and "▣" or "□"
-        toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
-    end
+toggleDpadButton.MouseButton1Click:Connect(function()
+	print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
+	
+	-- Flip the state
+	touchVisible = not touchVisible
+	
+	-- Hide/show the entire D‑pad GUI
+	if touchGui then
+		touchGui.Visible = touchVisible
+	end
+	
+	-- Update the toggle button
+	toggleDpadButton.Text = touchVisible and "▣" or "□"
+	toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
 end)
 --------------------------------------------------
 -- DRAG & DROP (Maus & Touch)
