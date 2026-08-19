@@ -318,6 +318,7 @@ createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
 local touchVisible = true
 
+--[[
 -- This toggles the D-pad visibility
 toggleDpadButton.MouseButton1Click:Connect(function()
 	print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
@@ -344,6 +345,24 @@ toggleDpadButton.MouseButton1Click:Connect(function()
 	end
 	print("Toggle D-pad END!")  -- DEBUG: check Output (F9)
 	print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")  -- DEBUG: check Output (F9)
+end)
+]]--
+toggleDpadButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        print("✅ Toggle clicked!")
+        
+        -- If touchGui is nil for some reason, recreate it
+        if not touchGui then
+            touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
+            -- (you would also need to recreate the arrow buttons here, but this is just a safety net)
+        end
+        
+        touchVisible = not touchVisible
+        touchGui.Visible = touchVisible
+        
+        toggleDpadButton.Text = touchVisible and "▣" or "□"
+        toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+    end
 end)
 --------------------------------------------------
 -- DRAG & DROP (Maus & Touch)
