@@ -311,7 +311,13 @@ createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 local toggleDpadButton = createElement("TextButton", {
     Name = "ToggleDpad",
     Size = UDim2.new(0, 30, 0, 30),
-    Position = UDim2.new(1, -70, 0, 5),   -- left of close button
+    --[[
+    -- left of close button
+    Position = UDim2.new(1, -70, 0, 5),
+    ]]--
+    -- top‑left corner
+    Position = UDim2.new(0, 5, 0, 5),
+
     BackgroundColor3 = Color3.fromRGB(0, 100, 0),
     Text = "▣",
     Font = Enum.Font.GothamBold,
