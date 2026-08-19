@@ -320,18 +320,29 @@ local touchVisible = true
 -- This toggles the D-pad visibility
 toggleDpadButton.MouseButton1Click:Connect(function()
 	print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
-	
-	-- Flip the state
-	touchVisible = not touchVisible
-	
-	-- Hide/show the entire D‑pad GUI
-	if touchGui then
-		touchGui.Visible = touchVisible
+	if touchVisible then
+		touchVisible = false
+		print("Dpad switched to: false1")  -- DEBUG: check Output (F9)
+		touchGui.Visible = false
+		print("Dpad switched to: false2")  -- DEBUG: check Output (F9)
+		-- touchGui.Size = 0
+		toggleDpadButton.Text = "□"
+		print("Dpad switched to: false3")  -- DEBUG: check Output (F9)
+		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+		print("Dpad switched to: false")  -- DEBUG: check Output (F9)
+	else
+		touchVisible = true
+		print("Dpad switched to: true1")  -- DEBUG: check Output (F9)
+		touchGui.Visible = true
+		print("Dpad switched to: true2")  -- DEBUG: check Output (F9)
+		-- touchGui.Size = buttonSize
+		toggleDpadButton.Text = "▣"
+		print("Dpad switched to: true3")  -- DEBUG: check Output (F9)
+		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+		print("Dpad switched to: true")  -- DEBUG: check Output (F9)
 	end
-	
-	-- Update the toggle button
-	toggleDpadButton.Text = touchVisible and "▣" or "□"
-	toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+	print("Toggle D-pad END!")  -- DEBUG: check Output (F9)
+	print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")  -- DEBUG: check Output (F9)
 end)
 --------------------------------------------------
 -- DRAG & DROP (Maus & Touch)
