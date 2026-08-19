@@ -1,5 +1,5 @@
 -- SUPERFLY V2 – COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
--- MIT TOUCH-UNTERSTÜTZUNG FÜR ANDROID + DPAD TOGGLE
+-- MIT TOUCH-UNTERSTÜTZUNG FÜR ANDROID + DPAD TOGGLE (FIXED)
 
 -- Dienste laden
 local Players = game:GetService("Players")
@@ -17,76 +17,59 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 local originalGravity = Workspace.Gravity
 
 local isFlying = false
-local flightSpeed = 100           -- Standardfluggeschwindigkeit
-local toggleKey = Enum.KeyCode.LeftAlt   -- Standard Umschalttaste
+local flightSpeed = 100
+local toggleKey = Enum.KeyCode.LeftAlt
 local waitingForKeybind = false
 
 -- Touch-GUI (wird später initialisiert)
 local touchGui = nil
 
--- Steuerungstabelle für Flugbewegung (wird von Tastatur UND Touch gesteuert)
+-- Steuerungstabelle für Flugbewegung
 local moveState = {
-    forward = 0,    -- W / Touch Up
-    backward = 0,   -- S / Touch Down
-    left = 0,       -- A / Touch Left
-    right = 0       -- D / Touch Right
+    forward = 0, backward = 0, left = 0, right = 0
 }
 
 -- Touch-Status für die Buttons
 local touchState = {
-    forward = false,
-    backward = false,
-    left = false,
-    right = false
+    forward = false, backward = false, left = false, right = false
 }
 
--- Zustände für Flugausrichtung (Rotation)
-local currentCF = nil       -- Aktuell interpolierter CFrame der Rotation
-local currentRoll = 0       -- Aktueller Rollwinkel (für seitliches Neigen)
-local maxRoll = 45          -- Maximaler Rollwinkel in Grad
-local lerpCoef = 0.1        -- Übergangskoeffizient für Rotation
+-- Zustände für Flugausrichtung
+local currentCF = nil
+local currentRoll = 0
+local maxRoll = 45
+local lerpCoef = 0.1
 
--- Variable für den Sliding-Effekt (inertiales Gleiten)
-local slideDamping = 0.05   -- Wert zwischen 0 und 1 (kleiner = mehr Slide)
+-- Sliding / Bobbing
+local slideDamping = 0.05
 local currentVelocity = Vector3.new(0, 0, 0)
+local bobbingFrequency = 1
+local bobbingAmplitude = 0.5
 
--- Parameter für den Bobbing-Effekt (sanftes Auf- und Abgleiten beim Schweben)
-local bobbingFrequency = 1    -- Frequenz des Sinus (je kleiner = längere Periode)
-local bobbingAmplitude = 0.5  -- Amplitude des Bobbings (Höhe der Schwankung)
-
--- Verbindungstabellen, um alle Events später sauber zu trennen
+-- Verbindungen
 local flightConns = {}
 local globalConns = {}
-
--- Variable für aktuell laufende Animation
 local currentAnimTrack = nil
 
 --------------------------------------------------
--- ANIMATIONEN (Starten/Stoppen)
+-- ANIMATIONEN
 --------------------------------------------------
-
 local function disableDefaultAnimate()
     local animate = character:FindFirstChild("Animate")
-    if animate then
-        animate.Disabled = true
-    end
+    if animate then animate.Disabled = true end
 end
 
 local function enableDefaultAnimate()
     local animate = character:FindFirstChild("Animate")
-    if animate then
-        animate.Disabled = false
-    end
+    if animate then animate.Disabled = false end
 end
 
 local function playAnimation(animId, startTime, speed)
-    -- Beende vorherige Animation
     if currentAnimTrack then
         currentAnimTrack:Stop(0.1)
         currentAnimTrack = nil
     end
     disableDefaultAnimate()
-    -- Stoppe alle bereits laufenden Animationen
     for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
         track:Stop()
     end
@@ -110,32 +93,26 @@ local function stopAnimation()
 end
 
 --------------------------------------------------
--- HILFSFUNKTION: UI-Elemente erstellen
+-- HILFSFUNKTION
 --------------------------------------------------
-
 local function createElement(className, properties, parent)
     local obj = Instance.new(className)
     for prop, val in pairs(properties) do
         obj[prop] = val
     end
-    if parent then
-        obj.Parent = parent
-    end
+    if parent then obj.Parent = parent end
     return obj
 end
 
 --------------------------------------------------
--- TOUCH-STEUERUNG FÜR ANDROID
+-- TOUCH-STEUERUNG
 --------------------------------------------------
-
--- Funktion zum Aktualisieren von moveState basierend auf Touch-Status
 local function updateMoveStateFromTouch()
     moveState.forward = touchState.forward and 1 or 0
     moveState.backward = touchState.backward and 1 or 0
     moveState.left = touchState.left and 1 or 0
     moveState.right = touchState.right and 1 or 0
 
-    -- Animationen basierend auf Touch-Status aktualisieren
     if isFlying then
         if touchState.forward and not touchState.backward then
             playAnimation(10714177846, 4.65, 0)
@@ -151,14 +128,11 @@ local function updateMoveStateFromTouch()
     end
 end
 
--- Touch-Buttons nur auf mobilen Geräten anzeigen
 local isMobile = UserInputService.TouchEnabled
 
 if isMobile then
-    -- Erstelle ein eigenes GUI für Touch-Buttons
     touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
-    -- Funktion zum Erstellen eines Touch-Buttons
     local function createTouchButton(text, position, size, stateKey)
         local btn = createElement("TextButton", {
             Name = stateKey .. "Btn",
@@ -175,7 +149,6 @@ if isMobile then
         }, touchGui)
         createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
 
-        -- Touch-Ereignisse
         btn.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch then
                 touchState[stateKey] = true
@@ -197,39 +170,21 @@ if isMobile then
         return btn
     end
 
-    -- Layout für Touch-Buttons (D-Pad ähnlich)
     local buttonSize = 70
     local spacing = 50
-    local centerX = 0.20  -- Linke Seite des Bildschirms
+    local centerX = 0.20
 
-    -- Forward (oben)
-    createTouchButton("▲",
-        UDim2.new(centerX, -buttonSize/2, 0.6, -buttonSize - spacing/2),
-        buttonSize, "forward")
-
-    -- Backward (unten)
-    createTouchButton("▼",
-        UDim2.new(centerX, -buttonSize/2, 0.6, spacing/2),
-        buttonSize, "backward")
-
-    -- Left (links)
-    createTouchButton("◄",
-        UDim2.new(centerX, -buttonSize - spacing/2, 0.6, -buttonSize/2),
-        buttonSize, "left")
-
-    -- Right (rechts)
-    createTouchButton("►",
-        UDim2.new(centerX, spacing/2, 0.6, -buttonSize/2),
-        buttonSize, "right")
+    createTouchButton("▲", UDim2.new(centerX, -buttonSize/2, 0.6, -buttonSize - spacing/2), buttonSize, "forward")
+    createTouchButton("▼", UDim2.new(centerX, -buttonSize/2, 0.6, spacing/2), buttonSize, "backward")
+    createTouchButton("◄", UDim2.new(centerX, -buttonSize - spacing/2, 0.6, -buttonSize/2), buttonSize, "left")
+    createTouchButton("►", UDim2.new(centerX, spacing/2, 0.6, -buttonSize/2), buttonSize, "right")
 end
 
 --------------------------------------------------
--- GUI ERSTELLEN (Hauptmenü)
+-- HAUPT-GUI
 --------------------------------------------------
-
 local flyGui = createElement("ScreenGui", {Name = "FlyGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
--- Hauptfenster: Größe 220x170, sodass alles reinpasst
 local mainFrame = createElement("Frame", {
     Name = "MainFrame",
     Size = UDim2.new(0, 220, 0, 170),
@@ -240,7 +195,6 @@ local mainFrame = createElement("Frame", {
 }, flyGui)
 createElement("UICorner", {CornerRadius = UDim.new(0, 10)}, mainFrame)
 
--- Titel
 local titleLabel = createElement("TextLabel", {
     Name = "TitleLabel",
     Size = UDim2.new(1, 0, 0, 40),
@@ -252,7 +206,6 @@ local titleLabel = createElement("TextLabel", {
     TextColor3 = Color3.new(1, 1, 1)
 }, mainFrame)
 
--- Toggle Button (An/Aus Flugmodus)
 local toggleButton = createElement("TextButton", {
     Name = "ToggleButton",
     Size = UDim2.new(0.9, 0, 0, 30),
@@ -266,7 +219,6 @@ local toggleButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleButton)
 
--- Speed Control Panel
 local speedFrame = createElement("Frame", {
     Name = "SpeedFrame",
     Size = UDim2.new(0, 200, 0, 30),
@@ -315,7 +267,6 @@ local plusButton = createElement("TextButton", {
 }, speedFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, plusButton)
 
--- Keybind Button
 local keybindButton = createElement("TextButton", {
     Name = "KeybindButton",
     Size = UDim2.new(0.9, 0, 0, 30),
@@ -329,7 +280,6 @@ local keybindButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, keybindButton)
 
--- Close Button (Bleibt in der Ecke)
 local closeButton = createElement("TextButton", {
     Name = "CloseButton",
     Size = UDim2.new(0, 30, 0, 30),
@@ -344,38 +294,40 @@ local closeButton = createElement("TextButton", {
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- NEU: DPAD TOGGLE BUTTON (oben links im Hauptfenster)
--- wird NUR auf mobilen Geräten angezeigt
+-- DPAD TOGGLE BUTTON (FIXED)
 --------------------------------------------------
 if isMobile then
     local toggleDpadButton = createElement("TextButton", {
         Name = "ToggleDpad",
         Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(0, 5, 0, 5),   -- oben links
+        Position = UDim2.new(0, 5, 0, 5),
         BackgroundColor3 = Color3.fromRGB(100, 100, 100),
         Text = "D",
         Font = Enum.Font.GothamBold,
         TextSize = 18,
         TextColor3 = Color3.new(1, 1, 1),
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 11  -- ensure it's above everything
     }, mainFrame)
     createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
     local touchVisible = true
-    toggleDpadButton.MouseButton1Click:Connect(function()
-        touchVisible = not touchVisible
-        if touchGui then
-            touchGui.Visible = touchVisible
+    toggleDpadButton.InputBegan:Connect(function(input)
+        -- react to both mouse and touch
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            touchVisible = not touchVisible
+            if touchGui then
+                touchGui.Visible = touchVisible
+            end
+            toggleDpadButton.Text = touchVisible and "D" or "✕"
+            toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
         end
-        toggleDpadButton.Text = touchVisible and "D" or "✕"
-        toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
     end)
 end
 
 --------------------------------------------------
--- GUI: Drag & Drop (unterstützt Maus UND Touch)
+-- DRAG & DROP (Maus & Touch)
 --------------------------------------------------
-
 local dragging = false
 local dragStartPos, dragStartMousePos
 
@@ -405,9 +357,8 @@ mainFrame.InputChanged:Connect(updateDrag)
 UserInputService.InputEnded:Connect(endDrag)
 
 --------------------------------------------------
--- Fluggeschwindigkeit anpassen
+-- GESCHWINDIGKEIT
 --------------------------------------------------
-
 speedTextBox.FocusLost:Connect(function()
     local newSpeed = tonumber(speedTextBox.Text)
     if newSpeed then
@@ -422,14 +373,13 @@ plusButton.MouseButton1Click:Connect(function()
     flightSpeed = flightSpeed + speedStep
     speedTextBox.Text = tostring(flightSpeed)
 end)
-
 minusButton.MouseButton1Click:Connect(function()
     flightSpeed = math.max(0, flightSpeed - speedStep)
     speedTextBox.Text = tostring(flightSpeed)
 end)
 
 --------------------------------------------------
--- Umschalten des Keybinds (ignoriert Touch)
+-- KEYBIND (ignoriert Touch)
 --------------------------------------------------
 keybindButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -440,9 +390,8 @@ keybindButton.InputBegan:Connect(function(input)
 end)
 
 --------------------------------------------------
--- GLOBALE TASTEN- UND KEYBIND-VERARBEITUNG
+-- GLOBALE TASTEN
 --------------------------------------------------
-
 local function onGlobalInput(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -455,9 +404,7 @@ local function onGlobalInput(input, gameProcessed)
                 Enum.KeyCode.Unknown
             }
             for _, key in ipairs(ignored) do
-                if input.KeyCode == key then
-                    return
-                end
+                if input.KeyCode == key then return end
             end
             waitingForKeybind = false
             toggleKey = input.KeyCode
@@ -468,19 +415,15 @@ local function onGlobalInput(input, gameProcessed)
                 humanoid2:ChangeState(Enum.HumanoidStateType.Landed)
                 humanoid2.Sit = true
                 humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
-                for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do
-                    v:Stop()
-                end
+                for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do v:Stop() end
                 playAnimation(10714347256, 4, 0)
             end
         elseif input.KeyCode == toggleKey then
             if not isFlying then
-                -- Flugmodus starten
+                -- Start flying
                 humanoid2.Sit = true
                 humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
-                for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do
-                    v:Stop()
-                end
+                for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do v:Stop() end
                 isFlying = true
                 toggleButton.Text = "FLY: ON"
                 local ti = TweenInfo.new(0.3)
@@ -591,7 +534,7 @@ local function onGlobalInput(input, gameProcessed)
                 table.insert(flightConns, flyEnded)
 
             else
-                -- Flugmodus beenden
+                -- Stop flying
                 isFlying = false
                 toggleButton.Text = "FLY: OFF"
                 local ti = TweenInfo.new(0.3)
@@ -618,17 +561,15 @@ local globalInputConn = UserInputService.InputBegan:Connect(onGlobalInput)
 table.insert(globalConns, globalInputConn)
 
 --------------------------------------------------
--- Toggle-Button: Gleicher Effekt wie die Umschalttaste
+-- TOGGLE BUTTON (FLY) - klickt wie die Taste
 --------------------------------------------------
-
 toggleButton.MouseButton1Click:Connect(function()
     onGlobalInput({KeyCode = toggleKey, UserInputType = Enum.UserInputType.Keyboard}, false)
 end)
 
 --------------------------------------------------
--- CHARACTER-RELOAD: Aufräumen
+-- CHARACTER RELOAD
 --------------------------------------------------
-
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     humanoid = character:WaitForChild("Humanoid")
@@ -651,9 +592,8 @@ player.CharacterAdded:Connect(function(newChar)
 end)
 
 --------------------------------------------------
--- CLOSE-BUTTON: Vollständiges Aufräumen
+-- CLOSE BUTTON
 --------------------------------------------------
-
 closeButton.MouseButton1Click:Connect(function()
     if isFlying then
         isFlying = false
