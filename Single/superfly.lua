@@ -131,6 +131,14 @@ end
 -- Erstelle das GUI für die Pfeile (immer vorhanden)
 touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
+-- **Container für die Pfeile – wird bewegt, um sie zu verstecken**
+local arrowContainer = createElement("Frame", {
+    Name = "ArrowContainer",
+    Size = UDim2.new(1, 0, 1, 0),          -- füllt den gesamten Bildschirm
+    BackgroundTransparency = 1,
+    ZIndex = 1
+}, touchGui)
+
 local function createArrowButton(text, position, size, stateKey)
     local btn = createElement("TextButton", {
         Name = stateKey .. "Btn",
@@ -144,10 +152,9 @@ local function createArrowButton(text, position, size, stateKey)
         BorderSizePixel = 0,
         BackgroundTransparency = 0.5,
         ZIndex = 10
-    }, touchGui)
+    }, arrowContainer)   -- **Parent zum Container, nicht zu touchGui**
     createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
 
-    -- Reagiere auf Touch UND Maus
     btn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
             touchState[stateKey] = true
@@ -310,56 +317,31 @@ local toggleDpadButton = createElement("TextButton", {
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
-    BorderSizePixel = 0
-	-- HIGHEST priority
-    -- ZIndex = 5
+    BorderSizePixel = 0,
+    ZIndex = 5
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
 local touchVisible = true
+local originalContainerPos = UDim2.new(0, 0, 0, 0)  -- Standardposition (oben links)
+local hiddenContainerPos = UDim2.new(10, 0, 10, 0)  -- weit außerhalb des Bildschirms
 
---[[
--- This toggles the D-pad visibility
-toggleDpadButton.MouseButton1Click:Connect(function()
-	print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
-	if touchVisible then
-		touchVisible = false
-		print("Dpad switched to: false1")  -- DEBUG: check Output (F9)
-		-- touchGui.Visible = false
-		touchGui.Size = 0
-		print("Dpad switched to: false2")  -- DEBUG: check Output (F9)
-		toggleDpadButton.Text = "□"
-		print("Dpad switched to: false3")  -- DEBUG: check Output (F9)
-		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-		print("Dpad switched to: false")  -- DEBUG: check Output (F9)
-	else
-		touchVisible = true
-		print("Dpad switched to: true1")  -- DEBUG: check Output (F9)
-		-- touchGui.Visible = true
-		touchGui.Size = buttonSize
-		print("Dpad switched to: true2")  -- DEBUG: check Output (F9)
-		toggleDpadButton.Text = "▣"
-		print("Dpad switched to: true3")  -- DEBUG: check Output (F9)
-		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-		print("Dpad switched to: true")  -- DEBUG: check Output (F9)
-	end
-	print("Toggle D-pad END!")  -- DEBUG: check Output (F9)
-	print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")  -- DEBUG: check Output (F9)
-end)
-]]--
 toggleDpadButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        print("✅ Toggle clicked!")
-        
-        -- If touchGui is nil for some reason, recreate it
-        if not touchGui then
-            touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
-            -- (you would also need to recreate the arrow buttons here, but this is just a safety net)
-        end
-        
+        print("✅ Toggle D-pad pressed!")  -- Debug (Output F9)
+
         touchVisible = not touchVisible
-        touchGui.Visible = touchVisible
-        
+
+        if arrowContainer then
+            if touchVisible then
+                arrowContainer.Position = originalContainerPos
+            else
+                arrowContainer.Position = hiddenContainerPos
+            end
+        else
+            warn("arrowContainer is nil!")  -- Sollte nicht passieren
+        end
+
         toggleDpadButton.Text = touchVisible and "▣" or "□"
         toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
     end
