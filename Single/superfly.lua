@@ -299,43 +299,42 @@ createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 --------------------------------------------------
 -- DPAD TOGGLE BUTTON (immer vorhanden)
 --------------------------------------------------
+--------------------------------------------------
+-- DPAD TOGGLE BUTTON (immer vorhanden) – FINAL FIX
+--------------------------------------------------
 local toggleDpadButton = createElement("TextButton", {
     Name = "ToggleDpad",
     Size = UDim2.new(0, 30, 0, 30),
     Position = UDim2.new(1, -70, 0, 5),   -- left of close button
-    -- BackgroundColor3 = Color3.fromRGB(100, 100, 100),
     BackgroundColor3 = Color3.fromRGB(0, 100, 0),
     Text = "▣",
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
     BorderSizePixel = 0,
+    ZIndex = 5   -- HIGHEST priority
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
--- toggleDpadButton.MouseButton1Click:Connect(function()
+-- This toggles the D-pad visibility
 toggleDpadButton.InputBegan:Connect(function(input)
+    -- React to both mouse AND touch
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        if touchVisible then
-            touchVisible = false
-            touchGui.Visible = false
-            toggleDpadButton.Text = "□"
-            toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        else
-            touchVisible = true
-            touchGui.Visible = true
-            toggleDpadButton.Text = "▣"
-            toggleDpadButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+        print("Toggle D-pad pressed!")  -- DEBUG: check Output (F9)
+        
+        -- Flip the state
+        touchVisible = not touchVisible
+        
+        -- Hide/show the entire D‑pad GUI
+        if touchGui then
+            touchGui.Visible = touchVisible
         end
+        
+        -- Update the toggle button
+        toggleDpadButton.Text = touchVisible and "▣" or "□"
+        toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
     end
-end)    -- touchVisible = not touchVisible
-    -- if touchGui then
-        -- touchGui.Visible = touchVisible
-    -- end
-    -- toggleDpadButton.Text = touchVisible and "▣" or "□"
-    -- toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
--- end)
-
+end)
 --------------------------------------------------
 -- DRAG & DROP (Maus & Touch)
 --------------------------------------------------
