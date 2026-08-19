@@ -1,5 +1,5 @@
 -- SUPERFLY V2 – COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
--- UNIVERSELLE VIRTUELLE PFEILTASTEN + TOGGLE FÜR ALLE GERÄTE
+-- UNIVERSELLE VIRTUELLE PFEILTASTEN + TOGGLE FÜR ALLE GERÄTE (FIXED)
 
 -- Dienste laden
 local Players = game:GetService("Players")
@@ -23,6 +23,7 @@ local waitingForKeybind = false
 
 -- Touch-GUI (wird immer erstellt)
 local touchGui = nil
+local touchVisible = true
 
 -- Steuerungstabelle für Flugbewegung
 local moveState = {
@@ -147,7 +148,6 @@ local function createArrowButton(text, position, size, stateKey)
     }, touchGui)
     createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
 
-    -- Reagiere auf Touch UND Maus
     btn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
             touchState[stateKey] = true
@@ -296,30 +296,33 @@ local closeButton = createElement("TextButton", {
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- DPAD TOGGLE BUTTON (immer vorhanden)
+-- DPAD TOGGLE BUTTON (immer vorhanden) – FIXED
 --------------------------------------------------
 local toggleDpadButton = createElement("TextButton", {
     Name = "ToggleDpad",
     Size = UDim2.new(0, 30, 0, 30),
     Position = UDim2.new(1, -70, 0, 5),   -- left of close button
     BackgroundColor3 = Color3.fromRGB(100, 100, 100),
-    Text = "D",
+    Text = "▣",
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
     BorderSizePixel = 0,
-    ZIndex = 2
+    ZIndex = 3   -- höher als alles andere
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
-local touchVisible = true
-toggleDpadButton.MouseButton1Click:Connect(function()
-    touchVisible = not touchVisible
-    if touchGui then
-        touchGui.Visible = touchVisible
+-- Verwende InputBegan (wie bei den Pfeiltasten) – reagiert auf Touch UND Maus
+toggleDpadButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        print("Toggle D-pad clicked!")  -- Debug-Ausgabe im Output (F9)
+        touchVisible = not touchVisible
+        if touchGui then
+            touchGui.Visible = touchVisible
+        end
+        toggleDpadButton.Text = touchVisible and "▣" or "□"
+        toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
     end
-    toggleDpadButton.Text = touchVisible and "D" or "✕"
-    toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(200, 50, 50)
 end)
 
 --------------------------------------------------
