@@ -310,8 +310,9 @@ local toggleDpadButton = createElement("TextButton", {
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
-    BorderSizePixel = 0,
-    ZIndex = 5   -- HIGHEST priority
+    BorderSizePixel = 0
+	-- HIGHEST priority
+    -- ZIndex = 5
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
@@ -323,9 +324,9 @@ toggleDpadButton.MouseButton1Click:Connect(function()
 	if touchVisible then
 		touchVisible = false
 		print("Dpad switched to: false1")  -- DEBUG: check Output (F9)
-		touchGui.Visible = false
+		-- touchGui.Visible = false
+		touchGui.Size = 0
 		print("Dpad switched to: false2")  -- DEBUG: check Output (F9)
-		-- touchGui.Size = 0
 		toggleDpadButton.Text = "□"
 		print("Dpad switched to: false3")  -- DEBUG: check Output (F9)
 		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
@@ -333,9 +334,9 @@ toggleDpadButton.MouseButton1Click:Connect(function()
 	else
 		touchVisible = true
 		print("Dpad switched to: true1")  -- DEBUG: check Output (F9)
-		touchGui.Visible = true
+		-- touchGui.Visible = true
+		touchGui.Size = buttonSize
 		print("Dpad switched to: true2")  -- DEBUG: check Output (F9)
-		-- touchGui.Size = buttonSize
 		toggleDpadButton.Text = "▣"
 		print("Dpad switched to: true3")  -- DEBUG: check Output (F9)
 		toggleDpadButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
