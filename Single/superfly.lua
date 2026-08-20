@@ -119,7 +119,8 @@ local function updateMoveStateFromTouch()
         elseif touchState.backward and not touchState.forward then
             playAnimation(10714347256, 4, 0)
         elseif touchState.left and touchState.forward then
-            playAnimation(123671647250039, 4.65, 0)
+            -- playAnimation(123671647250039, 4.65, 0)
+            playAnimation(97678489670395, 4.65, 0)
         elseif touchState.right and touchState.forward then
             playAnimation(121811796008419, 4.65, 0)
         elseif not touchState.forward and not touchState.backward and not touchState.left and not touchState.right then
@@ -522,7 +523,8 @@ local function onGlobalInput(input, gameProcessed)
                         elseif key == Enum.KeyCode.A then
                             moveState.left = 1
                             if moveState.forward > 0 then
-                                playAnimation(123671647250039, 4.65, 0)
+                                -- playAnimation(123671647250039, 4.65, 0)
+                                playAnimation(97678489670395, 4.65, 0)
                             end
                         elseif key == Enum.KeyCode.D then
                             moveState.right = 1
