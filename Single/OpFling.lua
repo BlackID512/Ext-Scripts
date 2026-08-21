@@ -322,7 +322,8 @@ local function SkidFling(TargetPlayer)
         end
         
         local SFBasePart = function(BasePart)
-            local TimeToWait = 2
+            -- local TimeToWait = 2
+            local TimeToWait = 0.5
             local Time = tick()
             local Angle = 0
             repeat
@@ -444,7 +445,8 @@ local function StartFling()
                 if FlingActive then
                     SkidFling(player)
                     -- Brief wait between targets to allow movement to reset
-                    wait(0.1)
+                    -- wait(0.1)
+                    wait(0.05)
                 else
                     break
                 end
@@ -454,7 +456,8 @@ local function StartFling()
             UpdateStatus()
             
             -- Wait a moment before starting next fling cycle
-            wait(0.5)
+            -- wait(0.5)
+            wait(0.05)
         end
     end)
 end
