@@ -24,6 +24,25 @@ local waitingForKeybind = false
 -- Touch-GUI (wird immer erstellt)
 local touchGui = nil
 
+-- Animation IDs
+local flightAnimID = 10714347256
+local forwardAnimID = 10714177846
+--[[ Backward Anims Collection
+10714347256
+]]--
+local backwardAnimID = 128928434146577
+--[[ Left Anims Collection
+-- local leftAnimID = 123671647250039
+]]--
+local leftAnimID = 97678489670395
+--[[ Right Anims Collection
+121811796008419
+134738715839868
+135471239466427 = https://www.roblox.com/catalog/135471239466427/Cute-lean
+]]--
+local rightAnimID = 135471239466427
+local idleAnimID = 10714347256
+
 -- Steuerungstabelle für Flugbewegung
 local moveState = {
     forward = 0, backward = 0, left = 0, right = 0
@@ -115,17 +134,15 @@ local function updateMoveStateFromTouch()
 
     if isFlying then
         if touchState.forward and not touchState.backward then
-            playAnimation(10714177846, 4.65, 0)
+            playAnimation(forwardAnimID, 4.65, 0)
         elseif touchState.backward and not touchState.forward then
-            playAnimation(10714347256, 4, 0)
+            playAnimation(flightAnimID, 4, 0)
         elseif touchState.left and touchState.forward then
-            -- playAnimation(123671647250039, 4.65, 0)
-            playAnimation(97678489670395, 4.65, 0)
+            playAnimation(leftAnimID, 4.65, 0)
         elseif touchState.right and touchState.forward then
-            -- playAnimation(121811796008419, 4.65, 0)
-            playAnimation(134738715839868, 4.65, 0)
+            playAnimation(rightAnimID, 4.65, 0)
         elseif not touchState.forward and not touchState.backward and not touchState.left and not touchState.right then
-            playAnimation(10714347256, 4, 0)
+            playAnimation(flightAnimID, 4, 0)
         end
     end
 end
@@ -445,7 +462,7 @@ local function onGlobalInput(input, gameProcessed)
                 humanoid2.Sit = true
                 humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
                 for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do v:Stop() end
-                playAnimation(10714347256, 4, 0)
+                playAnimation(flightAnimID, 4, 0)
             end
         elseif input.KeyCode == toggleKey then
             if not isFlying then
@@ -461,7 +478,7 @@ local function onGlobalInput(input, gameProcessed)
 
                 Workspace.Gravity = 0
                 humanoid.PlatformStand = true
-                playAnimation(10714347256, 4, 0)
+                playAnimation(flightAnimID, 4, 0)
 
                 local gyro = Instance.new("BodyGyro")
                 gyro.Name = "FlyGyro"
@@ -517,20 +534,20 @@ local function onGlobalInput(input, gameProcessed)
                         local key = input.KeyCode
                         if key == Enum.KeyCode.W then
                             moveState.forward = 1
-                            playAnimation(10714177846, 4.65, 0)
+                            playAnimation(forwardAnimID, 4.65, 0)
                         elseif key == Enum.KeyCode.S then
                             moveState.backward = 1
-                            playAnimation(10714347256, 4, 0)
+                            playAnimation(flightAnimID, 4, 0)
                         elseif key == Enum.KeyCode.A then
                             moveState.left = 1
                             if moveState.forward > 0 then
                                 -- playAnimation(123671647250039, 4.65, 0)
-                                playAnimation(97678489670395, 4.65, 0)
+                                playAnimation(leftAnimID, 4.65, 0)
                             end
                         elseif key == Enum.KeyCode.D then
                             moveState.right = 1
                             if moveState.forward > 0 then
-                                playAnimation(134738715839868, 4.65, 0)
+                                playAnimation(rightAnimID, 4.65, 0)
                                 -- playAnimation(121811796008419, 4.65, 0)
                             end
                         end
@@ -544,19 +561,19 @@ local function onGlobalInput(input, gameProcessed)
                         local key = input.KeyCode
                         if key == Enum.KeyCode.W then
                             moveState.forward = 0
-                            playAnimation(10714347256, 4, 0)
+                            playAnimation(flightAnimID, 4, 0)
                         elseif key == Enum.KeyCode.S then
                             moveState.backward = 0
-                            playAnimation(10714347256, 4, 0)
+                            playAnimation(flightAnimID, 4, 0)
                         elseif key == Enum.KeyCode.A then
                             moveState.left = 0
                             if moveState.forward > 0 then
-                                playAnimation(10714177846, 4.65, 0)
+                                playAnimation(forwardAnimID, 4.65, 0)
                             end
                         elseif key == Enum.KeyCode.D then
                             moveState.right = 0
                             if moveState.forward > 0 then
-                                playAnimation(10714177846, 4.65, 0)
+                                playAnimation(forwardAnimID, 4.65, 0)
                             end
                         end
                     end
