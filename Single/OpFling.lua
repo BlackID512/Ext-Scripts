@@ -390,7 +390,7 @@ local function SkidFling(TargetPlayer)
             repeat
                 RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
                 Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
-                Humanoid:ChangeState("GettingUp")
+                -- Humanoid:ChangeState("GettingUp")
                 for _, part in pairs(Character:GetChildren()) do
                     if part:IsA("BasePart") then
                         part.Velocity, part.RotVelocity = Vector3.new(), Vector3.new()
