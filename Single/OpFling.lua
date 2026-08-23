@@ -14,7 +14,7 @@ local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 -- GUI Setup
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KilasikFlingGUI"
+ScreenGui.Name = "BlackIDFlingGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui")
 -- Main Frame
@@ -36,7 +36,7 @@ TitleBar.Parent = MainFrame
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -30, 1, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "KILASIK'S MULTI-FLING"
+Title.Text = "BlackID OP FLING"
 Title.TextColor3 = Color3.fromRGB(255, 80, 80)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
@@ -297,11 +297,11 @@ local function SkidFling(TargetPlayer)
         if RootPart.Velocity.Magnitude < 50 then
             getgenv().OldPos = RootPart.CFrame
         end
-        
+        --[[
         if THumanoid and THumanoid.Sit then
             return Message("Error", TargetPlayer.Name .. " is sitting", 2)
         end
-        
+        ]]--
         if THead then
             workspace.CurrentCamera.CameraSubject = THead
         elseif Handle then
@@ -492,4 +492,4 @@ end)
 RefreshPlayerList()
 UpdateStatus()
 -- Success message
-Message("Loaded", "KILASIK's Multi-Target Fling GUI loaded!", 3)
+Message("Loaded", "BlackID OP Fling Initialized!", 3)
