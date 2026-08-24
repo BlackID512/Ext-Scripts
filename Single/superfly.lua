@@ -20,6 +20,8 @@ local isFlying = false
 local flightSpeed = 100
 local toggleKey = Enum.KeyCode.LeftAlt
 local waitingForKeybind = false
+local textDpadOn = "❤️"
+local textDpadOff = "🖤"
 
 -- Touch-GUI (wird immer erstellt)
 local touchGui = nil
@@ -338,7 +340,7 @@ local toggleDpadButton = createElement("TextButton", {
     Position = UDim2.new(0, 5, 0, 5),
 
     BackgroundColor3 = Color3.fromRGB(0, 100, 0),
-    Text = "▣",
+    Text = textDpadOn,
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
@@ -367,7 +369,7 @@ toggleDpadButton.InputBegan:Connect(function(input)
             warn("arrowContainer is nil!")  -- Sollte nicht passieren
         end
 
-        toggleDpadButton.Text = touchVisible and "▣" or "□"
+        toggleDpadButton.Text = touchVisible and textDpadOn or textDpadOff
         toggleDpadButton.BackgroundColor3 = touchVisible and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
     end
 end)
