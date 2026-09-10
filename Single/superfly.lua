@@ -324,23 +324,15 @@ local closeButton = createElement("TextButton", {
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- DPAD TOGGLE BUTTON (immer vorhanden)
---------------------------------------------------
---------------------------------------------------
--- DPAD TOGGLE BUTTON (immer vorhanden) – FINAL FIX
+-- DPAD TOGGLE BUTTON (immer vorhanden) – START HIDDEN
 --------------------------------------------------
 local toggleDpadButton = createElement("TextButton", {
     Name = "ToggleDpad",
     Size = UDim2.new(0, 30, 0, 30),
-    --[[
-    -- left of close button
-    Position = UDim2.new(1, -70, 0, 5),
-    ]]--
     -- top‑left corner
     Position = UDim2.new(0, 5, 0, 5),
-
-    BackgroundColor3 = Color3.fromRGB(0, 100, 0),
-    Text = textDpadOn,
+    BackgroundColor3 = Color3.fromRGB(100, 0, 0),   -- off color
+    Text = textDpadOff,                              -- off icon
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
@@ -349,9 +341,19 @@ local toggleDpadButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
-local touchVisible = true
+-- Start with D‑pad hidden
+local touchVisible = false
 local originalContainerPos = UDim2.new(0, 0, 0, 0)  -- Standardposition (oben links)
 local hiddenContainerPos = UDim2.new(10, 0, 10, 0)  -- weit außerhalb des Bildschirms
+
+-- Move container off‑screen immediately
+if arrowContainer then
+    arrowContainer.Position = hiddenContainerPos
+end
+
+-- Ensure toggle button shows off state
+toggleDpadButton.Text = textDpadOff
+toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
 
 toggleDpadButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -543,14 +545,12 @@ local function onGlobalInput(input, gameProcessed)
                         elseif key == Enum.KeyCode.A then
                             moveState.left = 1
                             if moveState.forward > 0 then
-                                -- playAnimation(123671647250039, 4.65, 0)
                                 playAnimation(leftAnimID, 4.65, 0)
                             end
                         elseif key == Enum.KeyCode.D then
                             moveState.right = 1
                             if moveState.forward > 0 then
                                 playAnimation(rightAnimID, 1, 0)
-                                -- playAnimation(121811796008419, 4.65, 0)
                             end
                         end
                     end
