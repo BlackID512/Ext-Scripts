@@ -262,7 +262,7 @@ local function Message(Title, Text, Time)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = Title,
         Text = Text,
-        Duration = Time or 5
+        Duration = Time or 3
     })
 end
 -- The fling function from zqyDSUWX
@@ -326,37 +326,43 @@ local function SkidFling(TargetPlayer)
             local TimeToWait = 0.5
             local Time = tick()
             local Angle = 0
+			-- local anyFrame = 1.5
+            local FramePlus = 2.5
+            local FrameMinus = -2.5
+			-- local MagBy = 1.25
+			local MagBy = 5
+			local FlingAngle = 90
             repeat
                 if RootPart and THumanoid then
                     if BasePart.Velocity.Magnitude < 50 then
                         Angle = Angle + 100
-                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle),0 ,0))
+                        FPos(BasePart, CFrame.new(0, FramePlus, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / MagBy, CFrame.Angles(math.rad(Angle),0 ,0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / MagBy, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle),0 ,0))
+                        FPos(BasePart, CFrame.new(0, FramePlus, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / MagBy, CFrame.Angles(math.rad(Angle),0 ,0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / MagBy, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle),0 ,0))
+                        FPos(BasePart, CFrame.new(0, FramePlus, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle),0 ,0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
                     else
-                        FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FramePlus, THumanoid.WalkSpeed), CFrame.Angles(math.rad(FlingAngle), 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FramePlus, THumanoid.WalkSpeed), CFrame.Angles(math.rad(FlingAngle), 0, 0))
                         task.wait()
                         
-                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(90), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0), CFrame.Angles(math.rad(FlingAngle), 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0), CFrame.Angles(0, 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(90), 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0), CFrame.Angles(math.rad(FlingAngle), 0, 0))
                         task.wait()
-                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+                        FPos(BasePart, CFrame.new(0, FrameMinus, 0), CFrame.Angles(0, 0, 0))
                         task.wait()
                     end
                 end
@@ -412,7 +418,8 @@ local function StartFling()
     local count = CountSelectedTargets()
     if count == 0 then
         StatusLabel.Text = "No targets selected!"
-        wait(1)
+        -- wait(1)
+        wait(0.1)
         StatusLabel.Text = "Select targets to fling"
         return
     end
@@ -446,7 +453,7 @@ local function StartFling()
                     SkidFling(player)
                     -- Brief wait between targets to allow movement to reset
                     -- wait(0.1)
-                    wait(0.05)
+                    wait(0.005)
                 else
                     break
                 end
@@ -457,7 +464,7 @@ local function StartFling()
             
             -- Wait a moment before starting next fling cycle
             -- wait(0.5)
-            wait(0.05)
+            wait(0.005)
         end
     end)
 end
