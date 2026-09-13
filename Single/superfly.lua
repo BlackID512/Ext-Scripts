@@ -1,14 +1,14 @@
--- SUPERFLY V2 – COMPLETTES FLUGSYSTEM MIT BOBBING & BACKWARDS-ANIMATION
--- UNIVERSELLE VIRTUELLE PFEILTASTEN + TOGGLE FÜR ALLE GERÄTE
+-- SUPERFLY V2 – SISTEM PENERBANGAN LENGKAP DENGAN BOBBING & ANIMASI MUNDUR
+-- TOMBOL PANAH VIRTUAL UNIVERSAL + TOGGLE UNTUK SEMUA PERANGKAT
 
--- Dienste laden
+-- Memuat layanan
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
--- Lokale Variablen
+-- Variabel lokal
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -23,21 +23,21 @@ local waitingForKeybind = false
 local textDpadOn = "❤️"
 local textDpadOff = "🖤"
 
--- Touch-GUI (wird immer erstellt)
+-- Touch GUI (selalu dibuat)
 local touchGui = nil
 
--- Animation IDs
+-- ID Animasi
 local flightAnimID = 10714347256
 local forwardAnimID = 10714177846
---[[ Backward Anims Collection
+--[[ Koleksi Animasi Mundur
 10714347256
 ]]--
 local backwardAnimID = 128928434146577
---[[ Left Anims Collection
+--[[ Koleksi Animasi Kiri
 -- local leftAnimID = 123671647250039
 ]]--
 local leftAnimID = 97678489670395
---[[ Right Anims Collection
+--[[ Koleksi Animasi Kanan
 121811796008419
 134738715839868
 135471239466427 = https://www.roblox.com/catalog/135471239466427/Cute-lean
@@ -45,17 +45,17 @@ local leftAnimID = 97678489670395
 local rightAnimID = 135471239466427
 local idleAnimID = 10714347256
 
--- Steuerungstabelle für Flugbewegung
+-- Tabel kontrol untuk gerakan penerbangan
 local moveState = {
     forward = 0, backward = 0, left = 0, right = 0
 }
 
--- Touch-Status für die Buttons (auch für Maus)
+-- Status sentuh untuk tombol (juga untuk mouse)
 local touchState = {
     forward = false, backward = false, left = false, right = false
 }
 
--- Zustände für Flugausrichtung
+-- Status untuk orientasi penerbangan
 local currentCF = nil
 local currentRoll = 0
 local maxRoll = 45
@@ -67,13 +67,13 @@ local currentVelocity = Vector3.new(0, 0, 0)
 local bobbingFrequency = 1
 local bobbingAmplitude = 0.5
 
--- Verbindungen
+-- Koneksi
 local flightConns = {}
 local globalConns = {}
 local currentAnimTrack = nil
 
 --------------------------------------------------
--- ANIMATIONEN
+-- ANIMASI
 --------------------------------------------------
 local function disableDefaultAnimate()
     local animate = character:FindFirstChild("Animate")
@@ -114,7 +114,7 @@ local function stopAnimation()
 end
 
 --------------------------------------------------
--- HILFSFUNKTION
+-- FUNGSI PEMBANTU
 --------------------------------------------------
 local function createElement(className, properties, parent)
     local obj = Instance.new(className)
@@ -126,7 +126,7 @@ local function createElement(className, properties, parent)
 end
 
 --------------------------------------------------
--- UNIVERSELLE VIRTUELLE PFEILTASTEN (immer sichtbar)
+-- TOMBOL PANAH VIRTUAL UNIVERSAL (selalu terlihat)
 --------------------------------------------------
 local function updateMoveStateFromTouch()
     moveState.forward = touchState.forward and 1 or 0
@@ -149,13 +149,13 @@ local function updateMoveStateFromTouch()
     end
 end
 
--- Erstelle das GUI für die Pfeile (immer vorhanden)
+-- Buat GUI untuk panah (selalu ada)
 touchGui = createElement("ScreenGui", {Name = "TouchGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
--- **Container für die Pfeile – wird bewegt, um sie zu verstecken**
+-- **Container untuk panah – dipindahkan untuk menyembunyikannya**
 local arrowContainer = createElement("Frame", {
     Name = "ArrowContainer",
-    Size = UDim2.new(1, 0, 1, 0),          -- füllt den gesamten Bildschirm
+    Size = UDim2.new(1, 0, 1, 0),          -- mengisi seluruh layar
     BackgroundTransparency = 1,
     ZIndex = 1
 }, touchGui)
@@ -173,7 +173,7 @@ local function createArrowButton(text, position, size, stateKey)
         BorderSizePixel = 0,
         BackgroundTransparency = 0.5,
         ZIndex = 10
-    }, arrowContainer)   -- **Parent zum Container, nicht zu touchGui**
+    }, arrowContainer)   -- **Parent ke container, bukan ke touchGui**
     createElement("UICorner", {CornerRadius = UDim.new(0, 40)}, btn)
 
     btn.InputBegan:Connect(function(input)
@@ -197,7 +197,7 @@ local function createArrowButton(text, position, size, stateKey)
     return btn
 end
 
--- Layout (D‑Pad)
+-- Tata letak (D-Pad)
 local buttonSize = 70
 local spacing = 50
 local centerX = 0.20
@@ -208,7 +208,7 @@ createArrowButton("◄", UDim2.new(centerX, -buttonSize - spacing/2, 0.6, -butto
 createArrowButton("►", UDim2.new(centerX, spacing/2, 0.6, -buttonSize/2), buttonSize, "right")
 
 --------------------------------------------------
--- HAUPT-GUI
+-- GUI UTAMA
 --------------------------------------------------
 local flyGui = createElement("ScreenGui", {Name = "FlyGui", ResetOnSpawn = false}, player:WaitForChild("PlayerGui"))
 
@@ -239,7 +239,7 @@ local toggleButton = createElement("TextButton", {
     Size = UDim2.new(0.9, 0, 0, 30),
     Position = UDim2.new(0.05, 0, 0, 45),
     BackgroundColor3 = Color3.fromRGB(200, 50, 50),
-    Text = "FLY: OFF",
+    Text = "TERBANG: MATI",
     Font = Enum.Font.GothamBold,
     TextSize = 20,
     TextColor3 = Color3.new(1, 1, 1),
@@ -300,7 +300,7 @@ local keybindButton = createElement("TextButton", {
     Size = UDim2.new(0.9, 0, 0, 30),
     Position = UDim2.new(0.05, 0, 0, 120),
     BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-    Text = "KEYBIND: " .. toggleKey.Name,
+    Text = "TOMBOL: " .. toggleKey.Name,
     Font = Enum.Font.GothamBold,
     TextSize = 20,
     TextColor3 = Color3.new(1, 1, 1),
@@ -308,7 +308,7 @@ local keybindButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, keybindButton)
 
--- Close Button (top-right)
+-- Tombol Tutup (kanan atas)
 local closeButton = createElement("TextButton", {
     Name = "CloseButton",
     Size = UDim2.new(0, 30, 0, 30),
@@ -324,15 +324,15 @@ local closeButton = createElement("TextButton", {
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, closeButton)
 
 --------------------------------------------------
--- DPAD TOGGLE BUTTON (immer vorhanden) – START HIDDEN
+-- TOMBOL TOGGLE DPAD (selalu ada) – MULAI TERSEMBUNYI
 --------------------------------------------------
 local toggleDpadButton = createElement("TextButton", {
     Name = "ToggleDpad",
     Size = UDim2.new(0, 30, 0, 30),
-    -- top‑left corner
+    -- sudut kiri atas
     Position = UDim2.new(0, 5, 0, 5),
-    BackgroundColor3 = Color3.fromRGB(100, 0, 0),   -- off color
-    Text = textDpadOff,                              -- off icon
+    BackgroundColor3 = Color3.fromRGB(100, 0, 0),   -- warna mati
+    Text = textDpadOff,                              -- ikon mati
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     TextColor3 = Color3.new(1, 1, 1),
@@ -341,23 +341,23 @@ local toggleDpadButton = createElement("TextButton", {
 }, mainFrame)
 createElement("UICorner", {CornerRadius = UDim.new(0, 8)}, toggleDpadButton)
 
--- Start with D‑pad hidden
+-- Mulai dengan D-pad tersembunyi
 local touchVisible = false
-local originalContainerPos = UDim2.new(0, 0, 0, 0)  -- Standardposition (oben links)
-local hiddenContainerPos = UDim2.new(10, 0, 10, 0)  -- weit außerhalb des Bildschirms
+local originalContainerPos = UDim2.new(0, 0, 0, 0)  -- Posisi default (kiri atas)
+local hiddenContainerPos = UDim2.new(10, 0, 10, 0)  -- jauh di luar layar
 
--- Move container off‑screen immediately
+-- Pindahkan container keluar layar segera
 if arrowContainer then
     arrowContainer.Position = hiddenContainerPos
 end
 
--- Ensure toggle button shows off state
+-- Pastikan tombol toggle menunjukkan status mati
 toggleDpadButton.Text = textDpadOff
 toggleDpadButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
 
 toggleDpadButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        print("✅ Toggle D-pad pressed!")  -- Debug (Output F9)
+        print("✅ Tombol Toggle D-pad ditekan!")  -- Debug (Output F9)
 
         touchVisible = not touchVisible
 
@@ -368,7 +368,7 @@ toggleDpadButton.InputBegan:Connect(function(input)
                 arrowContainer.Position = hiddenContainerPos
             end
         else
-            warn("arrowContainer is nil!")  -- Sollte nicht passieren
+            warn("arrowContainer nil!")  -- Seharusnya tidak terjadi
         end
 
         toggleDpadButton.Text = touchVisible and textDpadOn or textDpadOff
@@ -376,7 +376,7 @@ toggleDpadButton.InputBegan:Connect(function(input)
     end
 end)
 --------------------------------------------------
--- DRAG & DROP (Maus & Touch)
+-- DRAG & DROP (Mouse & Sentuh)
 --------------------------------------------------
 local dragging = false
 local dragStartPos, dragStartMousePos
@@ -407,7 +407,7 @@ mainFrame.InputChanged:Connect(updateDrag)
 UserInputService.InputEnded:Connect(endDrag)
 
 --------------------------------------------------
--- GESCHWINDIGKEIT
+-- KECEPATAN
 --------------------------------------------------
 speedTextBox.FocusLost:Connect(function()
     local newSpeed = tonumber(speedTextBox.Text)
@@ -429,18 +429,18 @@ minusButton.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- KEYBIND (ignoriert Touch)
+-- KEYBIND (mengabaikan sentuhan)
 --------------------------------------------------
 keybindButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         waitingForKeybind = true
-        keybindButton.Text = "PRESS ANY KEY..."
+        keybindButton.Text = "TEKAN TOMBOL APA SAJA..."
         keybindButton.BackgroundColor3 = Color3.fromRGB(75, 255, 75)
     end
 end)
 
 --------------------------------------------------
--- GLOBALE TASTEN
+-- TOMBOL GLOBAL
 --------------------------------------------------
 local function onGlobalInput(input, gameProcessed)
     if gameProcessed then return end
@@ -458,7 +458,7 @@ local function onGlobalInput(input, gameProcessed)
             end
             waitingForKeybind = false
             toggleKey = input.KeyCode
-            keybindButton.Text = "KEYBIND: " .. toggleKey.Name
+            keybindButton.Text = "TOMBOL: " .. toggleKey.Name
             keybindButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         elseif input.KeyCode == Enum.KeyCode.Space then
             if isFlying then
@@ -470,12 +470,12 @@ local function onGlobalInput(input, gameProcessed)
             end
         elseif input.KeyCode == toggleKey then
             if not isFlying then
-                -- Start flying
+                -- Mulai terbang
                 humanoid2.Sit = true
                 humanoid2.RootPart.CFrame = humanoid2.RootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
                 for _, v in ipairs(humanoid2:GetPlayingAnimationTracks()) do v:Stop() end
                 isFlying = true
-                toggleButton.Text = "FLY: ON"
+                toggleButton.Text = "TERBANG: NYALA"
                 local ti = TweenInfo.new(0.3)
                 local tween = TweenService:Create(toggleButton, ti, {BackgroundColor3 = Color3.fromRGB(75, 255, 75)})
                 tween:Play()
@@ -584,9 +584,9 @@ local function onGlobalInput(input, gameProcessed)
                 table.insert(flightConns, flyEnded)
 
             else
-                -- Stop flying
+                -- Berhenti terbang
                 isFlying = false
-                toggleButton.Text = "FLY: OFF"
+                toggleButton.Text = "TERBANG: MATI"
                 local ti = TweenInfo.new(0.3)
                 local tween = TweenService:Create(toggleButton, ti, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)})
                 tween:Play()
@@ -611,14 +611,14 @@ local globalInputConn = UserInputService.InputBegan:Connect(onGlobalInput)
 table.insert(globalConns, globalInputConn)
 
 --------------------------------------------------
--- TOGGLE BUTTON (FLY) - klickt wie die Taste
+-- TOMBOL TOGGLE (TERBANG) - mengklik seperti tombol
 --------------------------------------------------
 toggleButton.MouseButton1Click:Connect(function()
     onGlobalInput({KeyCode = toggleKey, UserInputType = Enum.UserInputType.Keyboard}, false)
 end)
 
 --------------------------------------------------
--- CHARACTER RELOAD
+-- MUAT ULANG KARAKTER
 --------------------------------------------------
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
@@ -626,7 +626,7 @@ player.CharacterAdded:Connect(function(newChar)
     hrp = character:WaitForChild("HumanoidRootPart")
     if isFlying then
         isFlying = false
-        toggleButton.Text = "FLY: OFF"
+        toggleButton.Text = "TERBANG: MATI"
         Workspace.Gravity = originalGravity
         humanoid.PlatformStand = false
         stopAnimation()
@@ -642,7 +642,7 @@ player.CharacterAdded:Connect(function(newChar)
 end)
 
 --------------------------------------------------
--- CLOSE BUTTON
+-- TOMBOL TUTUP
 --------------------------------------------------
 closeButton.MouseButton1Click:Connect(function()
     if isFlying then
