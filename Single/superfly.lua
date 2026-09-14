@@ -33,8 +33,9 @@ local flightAnimID = 10714347256
 local flightAnimID = 13541167203
 --[[ Koleksi Animasi Maju
 local forwardAnimID = 10714177846
-]]--
 local forwardAnimID = 13541166419
+]]--
+local forwardAnimID = 10714177846
 --[[ Koleksi Animasi Mundur
 10714347256
 ]]--
