@@ -27,8 +27,14 @@ local textDpadOff = "🖤"
 local touchGui = nil
 
 -- ID Animasi
+--[[ Koleksi Animasi Idle
 local flightAnimID = 10714347256
+]]--
+local flightAnimID = 13541167203
+--[[ Koleksi Animasi Maju
 local forwardAnimID = 10714177846
+]]--
+local forwardAnimID = 13541166419
 --[[ Koleksi Animasi Mundur
 10714347256
 ]]--
